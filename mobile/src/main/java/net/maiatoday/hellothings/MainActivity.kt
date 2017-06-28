@@ -15,12 +15,16 @@ class MainActivity : AppCompatActivity() {
     }
     lateinit var redLedRef: DatabaseReference
     lateinit var greenLedRef: DatabaseReference
+    var redLedIsOn: Boolean = false
+    var greenLedIsOn: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setupData()
+        setupTouch()
     }
+
 
     private fun setupData() {
         val database = FirebaseDatabase.getInstance()
@@ -33,6 +37,7 @@ class MainActivity : AppCompatActivity() {
                 val on = dataSnapshot.getValue(Boolean::class.java)
                 Log.d(TAG, "dataChange Red")
                 on?.let {
+                    redLedIsOn = it
                     if (it) {
                         redLed.setImageResource(R.drawable.led_red)
                     } else {
@@ -55,6 +60,7 @@ class MainActivity : AppCompatActivity() {
                 val on = dataSnapshot.getValue(Boolean::class.java)
                 Log.d(TAG, "dataChange Green")
                 on?.let {
+                    greenLedIsOn = it
                     if (it) {
                         greenLed.setImageResource(R.drawable.led_green)
                     } else {
@@ -73,4 +79,12 @@ class MainActivity : AppCompatActivity() {
 
         Log.d(TAG, "db setup complete")
     }
+
+
+    private fun setupTouch() {
+        redLed.setOnClickListener {  redLedRef.setValue(!redLedIsOn) }
+        greenLed.setOnClickListener {  greenLedRef.setValue(!greenLedIsOn) }
+    }
+
+
 }
