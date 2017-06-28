@@ -6,11 +6,16 @@ import android.os.Handler
 import android.util.Log
 import com.google.android.things.pio.Gpio
 import com.google.android.things.pio.PeripheralManagerService
+import com.google.firebase.database.DataSnapshot
 import kotlinx.android.synthetic.main.activity_main.*
-import android.os.Looper
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import java.io.IOException
 import java.util.concurrent.TimeUnit
-import javax.xml.datatype.DatatypeConstants.SECONDS
+import android.content.ContentValues.TAG
+import android.os.Looper
+import com.google.firebase.database.DatabaseError
 
 
 
@@ -40,11 +45,14 @@ class MainActivity : Activity() {
         val TAG = "MainActivity"
         val GREEN_LED_PIN = "BCM26"
         val RED_LED_PIN = "BCM16"
+        val RED_LED_DB = "ledRedOn"
+        val GREEN_LED_DB = "ledGreenOn"
     }
 
     lateinit var busGreen: Gpio
     lateinit var busRed: Gpio
-    lateinit var ledToggleHandler: Handler
+    lateinit var redLedRef: DatabaseReference
+    lateinit var greenLedRef: DatabaseReference
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,7 +61,12 @@ class MainActivity : Activity() {
         val test = "Available GPIO: " + service.gpioList
         Log.d(TAG, test)
         textView.text = test
+        setupLeds()
+        setupData()
+    }
 
+    private fun setupLeds() {
+        val service = PeripheralManagerService()
         try {
             busGreen = service.openGpio(GREEN_LED_PIN)
             busRed = service.openGpio(RED_LED_PIN)
@@ -61,59 +74,69 @@ class MainActivity : Activity() {
             throw IllegalStateException(GREEN_LED_PIN + " busGreen or busRed cannot be opened.", e)
         }
 
-
         try {
             busRed.setDirection(Gpio.DIRECTION_OUT_INITIALLY_LOW)
             busRed.setActiveType(Gpio.ACTIVE_HIGH)
-            busGreen.setDirection(Gpio.DIRECTION_OUT_INITIALLY_HIGH)
+            busGreen.setDirection(Gpio.DIRECTION_OUT_INITIALLY_LOW)
             busGreen.setActiveType(Gpio.ACTIVE_HIGH)
         } catch (e: IOException) {
             throw IllegalStateException(GREEN_LED_PIN + " busGreen or busRed cannot be configured.", e)
         }
-
-
-        ledToggleHandler = Handler(Looper.getMainLooper())
+        Log.d(TAG, "Leds configured")
     }
 
-    override fun onStart() {
-        super.onStart()
-        ledToggleHandler.post(toggleLed)
-    }
-
-    private val toggleLed = object : Runnable {
-        override fun run() {
-            val isOnRed: Boolean
-            val isOnGreen: Boolean
-            try {
-                isOnRed = busRed.getValue()
-                isOnGreen = busGreen.getValue()
-            } catch (e: IOException) {
-                throw IllegalStateException(GREEN_LED_PIN + " cannot be read.", e)
+    private fun setupData() {
+        val database = FirebaseDatabase.getInstance()
+        redLedRef = database.getReference(RED_LED_DB)
+        greenLedRef = database.getReference(GREEN_LED_DB)
+        val redEventListener = object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                // This method is called once with the initial value and again
+                // whenever data at this location is updated.
+                val on = dataSnapshot.getValue(Boolean::class.java)
+                Log.d(TAG, "dataChange Red")
+                busRed.setValue(true)
+                on?.let {
+                    if (it) {
+                        busRed.setValue(true)
+                    } else {
+                        busRed.setValue(false)
+                    }
+                    Log.d(TAG, "Red is: " + it)
+                }
             }
 
-            try {
-                if (isOnRed) {
-                    busRed.setValue(false)
-                } else {
-                    busRed.setValue(true)
-                }
-
-                if (isOnGreen) {
-                    busGreen.setValue(false)
-                } else {
-                    busGreen.setValue(true)
-                }
-            } catch (e: IOException) {
-                throw IllegalStateException(GREEN_LED_PIN + " cannot be written.", e)
+            override fun onCancelled(error: DatabaseError) {
+                // Failed to read value
+                Log.w(TAG, "Failed to read red.", error.toException())
             }
-
-            ledToggleHandler.postDelayed(this, TimeUnit.SECONDS.toMillis(1))
         }
-    }
+        redLedRef.addValueEventListener(redEventListener)
+        val greenEventListener = object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                // This method is called once with the initial value and again
+                // whenever data at this location is updated.
+                val on = dataSnapshot.getValue(Boolean::class.java)
+                Log.d(TAG, "dataChange Green")
+                busGreen.setValue(true)
+                on?.let {
+                    if (it) {
+                        busGreen.setValue(true)
+                    } else {
+                        busGreen.setValue(false)
+                    }
+                    Log.d(TAG, "Green is: " + it)
+                }
+            }
 
-    override fun onStop() {
-        ledToggleHandler.removeCallbacks(toggleLed)
-        super.onStop()
+            override fun onCancelled(error: DatabaseError) {
+                // Failed to read value
+                Log.w(TAG, "Failed to read green.", error.toException())
+            }
+        }
+        greenLedRef.addValueEventListener(greenEventListener)
+
+        Log.d(TAG, "db setup complete")
     }
 
     override fun onDestroy() {
