@@ -2,22 +2,12 @@ package net.maiatoday.hellothings
 
 import android.app.Activity
 import android.os.Bundle
-import android.os.Handler
 import android.util.Log
 import com.google.android.things.pio.Gpio
 import com.google.android.things.pio.PeripheralManagerService
-import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.*
 import kotlinx.android.synthetic.main.activity_main.*
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
 import java.io.IOException
-import java.util.concurrent.TimeUnit
-import android.content.ContentValues.TAG
-import android.os.Looper
-import com.google.firebase.database.DatabaseError
-
-
 
 
 /**
@@ -53,6 +43,8 @@ class MainActivity : Activity() {
     lateinit var busRed: Gpio
     lateinit var redLedRef: DatabaseReference
     lateinit var greenLedRef: DatabaseReference
+    var redLedIsOn: Boolean = false
+    var greenLedIsOn: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -97,9 +89,12 @@ class MainActivity : Activity() {
                 Log.d(TAG, "dataChange Red")
                 busRed.setValue(true)
                 on?.let {
+                    redLedIsOn = it
                     if (it) {
+                        redLed.setImageResource(R.drawable.led_red)
                         busRed.setValue(true)
                     } else {
+                        redLed.setImageResource(R.drawable.led_off)
                         busRed.setValue(false)
                     }
                     Log.d(TAG, "Red is: " + it)
@@ -120,9 +115,12 @@ class MainActivity : Activity() {
                 Log.d(TAG, "dataChange Green")
                 busGreen.setValue(true)
                 on?.let {
+                    greenLedIsOn = it
                     if (it) {
+                        greenLed.setImageResource(R.drawable.led_green)
                         busGreen.setValue(true)
                     } else {
+                        greenLed.setImageResource(R.drawable.led_off)
                         busGreen.setValue(false)
                     }
                     Log.d(TAG, "Green is: " + it)
