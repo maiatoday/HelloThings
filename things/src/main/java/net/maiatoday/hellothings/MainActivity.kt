@@ -50,7 +50,7 @@ class MainActivity : Activity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         val service = PeripheralManagerService()
-        val test = "Available GPIO: " + service.gpioList
+        val test = "Hrmph Available GPIO: " + service.gpioList
         Log.d(TAG, test)
         textView.text = test
         setupLeds()
