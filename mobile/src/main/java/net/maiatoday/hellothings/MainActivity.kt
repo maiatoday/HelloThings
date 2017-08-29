@@ -13,6 +13,7 @@ class MainActivity : AppCompatActivity() {
         val RED_LED_DB = "ledRedOn"
         val GREEN_LED_DB = "ledGreenOn"
     }
+
     lateinit var redLedRef: DatabaseReference
     lateinit var greenLedRef: DatabaseReference
     var redLedIsOn: Boolean = false
@@ -80,10 +81,9 @@ class MainActivity : AppCompatActivity() {
         Log.d(TAG, "db setup complete")
     }
 
-
     private fun setupTouch() {
-        redLed.setOnClickListener {  redLedRef.setValue(!redLedIsOn) }
-        greenLed.setOnClickListener {  greenLedRef.setValue(!greenLedIsOn) }
+        redLed.setOnClickListener { redLedRef.setValue(!redLedIsOn) }
+        greenLed.setOnClickListener { greenLedRef.setValue(!greenLedIsOn) }
     }
 
 
