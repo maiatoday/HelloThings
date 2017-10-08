@@ -1,6 +1,7 @@
 package net.maiatoday.hellothings
 
 import android.app.Activity
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import com.google.android.things.pio.Gpio
@@ -13,10 +14,19 @@ import java.io.IOException
 class MainActivity : Activity() {
     companion object {
         val TAG = "MainActivity"
-        val GREEN_LED_PIN = "BCM26"
-        val RED_LED_PIN = "BCM16"
+        val GREEN_LED_PIN = "GPIO_37"
+//        val GREEN_LED_PIN = if (Build.DEVICE == DEVICE_RPI)
+//            "BCM26"
+//        else
+//            "GPIO_37"
+        val RED_LED_PIN = "GPIO_39"
+//        val RED_LED_PIN = if (Build.DEVICE == DEVICE_RPI)
+//            "BCM16"
+//        else
+//            "GPIO_39"
         val RED_LED_DB = "ledRedOn"
         val GREEN_LED_DB = "ledGreenOn"
+
     }
 
     lateinit var busGreen: Gpio
@@ -111,9 +121,6 @@ class MainActivity : Activity() {
     }
     private fun setupLeds() {
         val service = PeripheralManagerService()
-        val test = "Hrmph Available GPIO: " + service.gpioList
-        Log.d(TAG, test)
-        textView.text = test
         try {
             busGreen = service.openGpio(GREEN_LED_PIN)
             busRed = service.openGpio(RED_LED_PIN)
@@ -130,6 +137,10 @@ class MainActivity : Activity() {
             throw IllegalStateException(GREEN_LED_PIN + " busGreen or busRed cannot be configured.", e)
         }
         Log.d(TAG, "Leds configured")
+
+        val test = Build.DEVICE+" Hrmph Available GPIO: " + service.gpioList
+        Log.d(TAG, test)
+        textView.text = test
     }
 
 
