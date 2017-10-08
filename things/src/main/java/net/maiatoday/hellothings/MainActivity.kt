@@ -14,16 +14,16 @@ import java.io.IOException
 class MainActivity : Activity() {
     companion object {
         val TAG = "MainActivity"
-        val GREEN_LED_PIN = "GPIO_37"
-//        val GREEN_LED_PIN = if (Build.DEVICE == DEVICE_RPI)
-//            "BCM26"
-//        else
-//            "GPIO_37"
-        val RED_LED_PIN = "GPIO_39"
-//        val RED_LED_PIN = if (Build.DEVICE == DEVICE_RPI)
-//            "BCM16"
-//        else
-//            "GPIO_39"
+
+        private val DEVICE_RPI = "rpi3"
+        val GREEN_LED_PIN = if (Build.DEVICE == DEVICE_RPI)
+            "BCM26"
+        else
+            "GPIO_37"
+        val RED_LED_PIN = if (Build.DEVICE == DEVICE_RPI)
+            "BCM16"
+        else
+            "GPIO_39"
         val RED_LED_DB = "ledRedOn"
         val GREEN_LED_DB = "ledGreenOn"
 
